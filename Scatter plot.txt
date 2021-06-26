@@ -1,0 +1,57 @@
+#   Scatter plot in R #
+
+library(readxl)
+library(reshape2)
+library(ggplot2)
+
+#------------Read the data sheet from your Folder----------
+DES <- read_excel("D:\\F\\MOD09Q1\\Rice identification from GEE\\DES statics_with_surfacewater.xlsx", sheet= 'Scatter')
+DES_na<- na.omit(DES)
+
+head(DES_na)
+
+#----Linear model------------------
+DES_pppm= lm(PPPM ~ DES, data= DES_na)
+summary(DES_pppm)
+
+#----Check RMSE---------------------
+library(mltools)
+predicted_pppm<- DES_pppm$fitted.values
+rmse(DES_na$PPPM, predicted_pppm) # actual, predict
+# correlation--------------
+cor.test(DES_na$DES, DES_na$PPPM, method=c("pearson"))
+
+ 
+ggplot(DES_na, aes(x=DES, y=PPPM)) + theme_bw()+ theme( panel.grid.minor = element_blank())+
+  geom_point(color='blue', size=1, shape = 21,stroke = 2)+
+  geom_smooth(method=lm, color= "red", linetype=1, size= 0.5, fill="#99FFCC")+
+  scale_x_continuous(name="Area from DES ('0000 ha)",limits=c(0, 350000), breaks = c(0,70000, 140000, 210000, 280000, 350000), labels= c('0', '7', '14', '21', '28', '35'))+
+  scale_y_continuous(name="Area from PPPM ('0000 ha)",limits=c(0, 350000), breaks = c(0,70000, 140000, 210000, 280000, 350000), labels= c('0', '7', '14', '21', '28', '35'))+
+  geom_abline(intercept = 2, slope = 1,color="black", linetype="dashed", size=0.5)+
+  theme(text=element_text(size=16), axis.text.x = element_text(angle = 360, color= 'black', hjust = 1, ))+
+  theme(text=element_text(size=16), axis.text.y = element_text(angle = 360, color= 'black', hjust = 1))+
+  annotate(geom="text", x=65000, y=340000, label="y == 0.79*x - 4065", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=50000, y=320000, label="R^2 == 0.90", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=55000, y=300000, label="p == 0.001", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=65000, y=280000, label="RMSE == 27670", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=47000, y=260000, label="n == 22", color= "black", size= 4, parse = T)
+
+
+# Multiplot within a page
+library("gridExtra")
+
+a<- ggplot(DES_na, aes(x=DES, y=PPPM)) + theme_bw()+ theme( panel.grid.minor = element_blank())+
+  geom_point(color='blue', size=1, shape = 21,stroke = 2)+
+  geom_smooth(method=lm, color= "red", linetype=1, size= 0.5, fill="#99FFCC")+
+  scale_x_continuous(name="Area from DES ('0000 ha)",limits=c(0, 350000), breaks = c(0,70000, 140000, 210000, 280000, 350000), labels= c('0', '7', '14', '21', '28', '35'))+
+  scale_y_continuous(name="Area from PPPM ('0000 ha)",limits=c(0, 350000), breaks = c(0,70000, 140000, 210000, 280000, 350000), labels= c('0', '7', '14', '21', '28', '35'))+
+  geom_abline(intercept = 2, slope = 1,color="black", linetype="dashed", size=0.5)+
+  theme(text=element_text(size=16), axis.text.x = element_text(angle = 360, color= 'black', hjust = 1, ))+
+  theme(text=element_text(size=16), axis.text.y = element_text(angle = 360, color= 'black', hjust = 1))+
+  annotate(geom="text", x=65000, y=340000, label="y == 0.79*x - 4065", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=50000, y=320000, label="R^2 == 0.90", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=55000, y=300000, label="p == 0.001", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=65000, y=280000, label="RMSE == 27670", color= "black", size= 4, parse = T)+
+  annotate(geom="text", x=47000, y=260000, label="n == 22", color= "black", size= 4, parse = T)
+
+grid.arrange(a,a,, nrow= 1, ncol= 2)
